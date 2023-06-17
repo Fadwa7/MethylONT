@@ -1,0 +1,90 @@
+# This file describes the commands line used to execute these tools: DeepSignalPlant - Megalodon - DeepMP and Tombo # 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% PREPROCESSING STEP %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+# ont-fast5-api : Multiple_to_single ( from multiple fast5 to single fast5) 
+
+multi_to_single_fast5 -i /home/elkhaddar/fast5/ -s /home/elkhaddar/single_fast5/
+
+# Guppy : Basecalling 
+guppy_basecaller -i fast5s/ -r -s fast5s_guppy \
+  --config dna_r9.4.1_450bps_fast.cfg \
+  --device CUDA:0 
+  
+cd fast5_guppy/pass
+cat *.fastq > all_fastqs.fastq 
+
+# Resquiggle : 
+tombo preprocess annotate_raw_with_fastqs --fast5-basedir fast5s/ \
+  --fastq-filenames fast5s_guppy.fastq \
+  --sequencing-summary-filenames fast5s_guppy/sequencing_summary.txt \
+  --basecall-group Basecall_1D_000 --basecall-subgroup BaseCalled_template \
+  --overwrite --processes 10
+  
+ tombo resquiggle fast5s/ GCF_000001735.4_TAIR10.1_genomic.fna \
+  --processes 10 --corrected-group RawGenomeCorrected_000 \
+  --basecall-group Basecall_1D_000 --overwrite
+ 
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+ ## DeepSignalPlant 
+ 
+ deepsignal_plant extract -i fast5s \
+  -o fast5s.C.features.tsv --corrected_group RawGenomeCorrected_000 \
+  --nproc 30 --motifs C
+  
+  deepsignal_plant call_freq --input_path fast5s.C.call_mods.tsv \
+  --result_file fast5s.C.call_mods.frequency.bed --bed --sort
+  
+## Tombo 
+  
+tombo resquiggle fast5s/  GCF_000001735.4_TAIR10.1_genomic.fna --ignore-read-locks --overwrite  \
+--processes 8 && tombo detect_modifications alternative_model --dna  --fast5-basedirs fast5s/ \
+--statistics-file-basename Results_Tombo/fast5s --alternate-bases CpG --processes 8
+
+tombo text_output browser_files --fast5-basedirs fast5s/ --statistics-filename Results_Tombo/fast5_stats \
+--file-types valid_coverage fraction --browser-file-basename Results_Tombo/fast5s_
+
+## Megalodon 
+
+megalodon fast5/ --output-directory Results_megalodon/ \
+--outputs basecalls mappings mod_mappings per_read_mods mods --reference GCF_000001735.4_TAIR10.1_genomic.fna \
+--guppy-server-path /ont-guppy/bin/guppy_basecall_server --guppy-config dna_r9.4.1_450bps_hac.cfg --guppy-timeout 500 \
+--remora-modified-bases dna_r9.4.1_e8 hac 0.0.0 5mc CG 0 --processes 10 --overwrite --mod-motif m CG 0  --write-mods-text --devices 1
+
+## DeepMP 
+(Les mêmes étapes on les applique sur les données non traités) 
+
+python deepmp/miscellaneous/parse_fast5.py fast5/treated/ -ff5 True -o Results_DeepMP/error_features/treated/ \
+-cpu 56 -bg Basecall_1D_000 (il est impératif que ce fichier soit de même nom que celui donné dans tombo resquiggle)
+
+minimap2 -ax map-ont GCF_000001735.4_TAIR10.1_genomic.fna Basecall_1D_001_BaseCalled_template.fastq \
+| samtools view -hSb | samtools sort -@ 56 -o treated.bam
+
+samtools index treated.bam
+
+samtools view -h -F 3844 sample.bam \
+|  java -jar ../../../jvarkit/sam2tsv.jar -r GCF_000001735.4_TAIR10.1_genomic.fna > treated.tsv
+
+mkdir tmp
+
+awk 'NR==1{ h=$0 }NR>1{ print (!a[$2]++? h ORS $0 : $0) > "tmp/"$1".txt" }' treated.tsv
+
+python ../../../../deepmp/miscellaneous/get_dict_guppy.py -ss fast5_guppy/sequencing_summary_treated.txt -o dict_reads.pkl
+
+DeepMP combine-extraction -fr docs/reads/treated/ -re docs/output_example/error_features/treated/tmp/ \
+-rp  GCF_000001735.4_TAIR10.1_genomic.fna -ml 1 -cpu 20 -m CG \
+-dn dict_reads.pkl -o treated_features.tsv
+
+DeepMP preprocess -f features.tsv -ft combined -o -sp . -cpu 20
+
+DeepMP train-nns -m joint -tf train.h5 -vf validation.h5 -md model/ -ld log_directory/
+
+DeepMP call-modifications -m joint -tf test.h5 -md model/ -o output/ -pos -cpu 20
+
+
+
+
+
+
+
