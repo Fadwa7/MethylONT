@@ -1,0 +1,95 @@
+Bootstrap: library
+From: ubuntu:18.04
+
+%environment
+    export PATH="/usr/local/bin:$PATH"
+
+%post
+    # ================================
+    # PREPARE the system
+    # ================================
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update
+    apt-get install -y software-properties-common
+    apt-add-repository universe
+    apt-get update
+    export LC_ALL=C.UTF-8
+    export LANG=C.UTF-8
+    echo 'export LC_ALL=C.UTF-8' >> "$SINGULARITY_ENVIRONMENT"
+    echo 'export LANG=C.UTF-8' >> "$SINGULARITY_ENVIRONMENT"
+
+    apt-get install -y \
+        wget \
+        build-essential
+
+    libboostVERSION="1.62.0"
+    apt-get install -y \
+        libidn11 \
+        libidn11-dev \
+        libgssapi-krb5-2 \
+        libboost-atomic${libboostVERSION} \
+        libboost-chrono${libboostVERSION}  \
+        libboost-date-time${libboostVERSION} \
+        libboost-filesystem${libboostVERSION} \
+        libboost-program-options${libboostVERSION} \
+        libboost-regex${libboostVERSION} \
+        libboost-system${libboostVERSION} \
+        libboost-log${libboostVERSION}
+        
+    # ================================
+    # INSTALL python3.8
+    # ================================
+
+	apt-get -y install software-properties-common
+	add-apt-repository ppa:deadsnakes/ppa
+	apt-get -y install python3.8-distutils
+	apt-get -y install python3.8
+	ln -s /usr/bin/python3.8 /usr/bin/python
+	
+	
+	
+	#curl installation
+	apt-get -y install curl
+	
+	#pip installation
+	wget https://bootstrap.pypa.io/get-pip.py
+	python3.8 get-pip.py
+	
+    # ================================
+    # INSTALL DeepSignal-plant
+    # ================================
+	pip install deepsignal-plant
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

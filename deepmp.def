@@ -1,0 +1,68 @@
+Bootstrap: library
+From: ubuntu:18.04
+
+%environment
+    export PATH="/usr/local/bin:$PATH"
+
+%post
+    # ================================
+    # PREPARE the system
+    # ================================
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update
+    apt-get install -y software-properties-common
+    apt-add-repository universe
+    apt-get update
+    export LC_ALL=C.UTF-8
+    export LANG=C.UTF-8
+    echo 'export LC_ALL=C.UTF-8' >> "$SINGULARITY_ENVIRONMENT"
+    echo 'export LANG=C.UTF-8' >> "$SINGULARITY_ENVIRONMENT"
+
+    apt-get install -y \
+        wget \
+        build-essential
+
+    libboostVERSION="1.62.0"
+    apt-get install -y \
+        libidn11 \
+        libidn11-dev \
+        libgssapi-krb5-2 \
+        libboost-atomic${libboostVERSION} \
+        libboost-chrono${libboostVERSION}  \
+        libboost-date-time${libboostVERSION} \
+        libboost-filesystem${libboostVERSION} \
+        libboost-program-options${libboostVERSION} \
+        libboost-regex${libboostVERSION} \
+        libboost-system${libboostVERSION} \
+        libboost-log${libboostVERSION}
+     apt-get install -y git
+    # ================================
+    # INSTALL conda	
+    # ================================
+
+	wget -c https://repo.anaconda.com/archive/Anaconda3-2020.02-Linux-x86_64.sh
+	/bin/bash Anaconda3-2020.02-Linux-x86_64.sh -bfp /usr/local
+	#Conda configuration of channels from .condarc file
+	conda config --file /.condarc --add channels defaults
+	conda config --file /.condarc --add channels conda-forge
+	conda update conda
+	export PATH=$PATH:/usr/local/bin/conda
+    # ===============================
+    # INSTALL DeepMP
+    # ===============================
+	git clone https://github.com/pepebonet/DeepMP.git
+	conda create --name deepmp_2021 python=3.8
+	#conda activate 
+	#conda deactivate 
+	#conda activate deepmp_2021
+	#cd ..
+	cd DeepMP
+	pip install -e .
+	pip install numpy
+	pip install ont-tombo
+	pip install biopython
+	conda install -c bioconda samtools
+	conda install -c bioconda minimap2
+	conda install -c anaconda openjdk
+	conda install -c anaconda bottleneck
+	pip install numpy --upgrade
