@@ -4,6 +4,19 @@ From: ubuntu:18.04
 %environment
     export PATH="/usr/local/bin:$PATH"
 
+%help 
+
+This container launches megalodon software used for the identification of modified nucleotides from nanopore sequencing data.
+
+======================================================================================
+
+
+	usage (help)	: singularity run megalodon.sif
+	
+	building container : singularity build tombo.sif tombo.def 
+
+
+======================================================================================
 %post
     # ================================
     # PREPARE the system
@@ -46,13 +59,13 @@ From: ubuntu:18.04
 	apt-get -y install python3.8
 	ln -s /usr/bin/python3.8 /usr/bin/python
     # ================================
-    # INSTALL guppy-gpu
+    # INSTALL guppy-cpu
     # ================================
 
     VERSION="6.0.1"
-    URL="https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy_6.0.1_linux64.tar.gz"
+    URL="https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_6.0.1_linux64.tar.gz"
     wget "$URL" -O - | tar xzf -
-    cd ont-guppy || exit 1
+    cd ont-guppy-cpu || exit 1
     for binary in bin/guppy_*
     do
         ln -s "$(realpath "$binary")" "/usr/local/bin/$(basename "$binary")"
@@ -69,30 +82,21 @@ From: ubuntu:18.04
 	conda config --file /.condarc --add channels conda-forge
 	conda update conda
 	
+	##Install Guppy 
+	    VERSION="6.0.1"
+    URL="https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_6.0.1_linux64.tar.gz"
+    wget "$URL" -O - | tar xzf -
+    cd ont-guppy-cpu || exit 1
+    for binary in bin/guppy_*
+    do
+        ln -s -f "$(realpath "$binary")" "/usr/local/bin/$(basename "$binary")"
+    done 
+    pip install ont-pyguppy-client-lib==6.0.1
     # ================================
     # INSTALL MEGALODON
     # ================================
 	
 	pip install megalodon
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
