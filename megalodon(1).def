@@ -59,11 +59,11 @@ This container launches megalodon software used for the identification of modifi
 	apt-get -y install python3.8
 	ln -s /usr/bin/python3.8 /usr/bin/python
     # ================================
-    # INSTALL guppy-cpu
+    # INSTALL guppy-gpu
     # ================================
 
     VERSION="6.0.1"
-    URL="https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_6.0.1_linux64.tar.gz"
+    URL="https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy_6.0.1_linux64.tar.gz"
     wget "$URL" -O - | tar xzf -
     cd ont-guppy-cpu || exit 1
     for binary in bin/guppy_*
@@ -84,7 +84,7 @@ This container launches megalodon software used for the identification of modifi
 	
 	##Install Guppy 
 	    VERSION="6.0.1"
-    URL="https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy-cpu_6.0.1_linux64.tar.gz"
+    URL="https://mirror.oxfordnanoportal.com/software/analysis/ont-guppy_6.0.1_linux64.tar.gz"
     wget "$URL" -O - | tar xzf -
     cd ont-guppy-cpu || exit 1
     for binary in bin/guppy_*
