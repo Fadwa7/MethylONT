@@ -13,7 +13,7 @@ This container launches megalodon software used for the identification of modifi
 
 	usage (help)	: singularity run megalodon.sif
 	
-	building container : singularity build tombo.sif tombo.def 
+	building container : singularity build megalodon.sif megalodon.def 
 
 
 ======================================================================================
