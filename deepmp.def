@@ -3,7 +3,19 @@ From: ubuntu:18.04
 
 %environment
     export PATH="/usr/local/bin:$PATH"
+%help 
 
+This container launches DeepMP software used for the identification of modified nucleotides from nanopore sequencing data.
+
+======================================================================================
+
+
+	usage (help)	: singularity run deepmp.sif
+	
+	building container : singularity build deepmp.sif deepmp.def 
+
+
+======================================================================================
 %post
     # ================================
     # PREPARE the system
