@@ -3,7 +3,19 @@ From: ubuntu:18.04
 
 %environment
     export PATH="/usr/local/bin:$PATH"
+%help 
 
+This container launches DeepSignalPlant software used for the identification of modified nucleotides from nanopore sequencing data.
+
+======================================================================================
+
+
+	usage (help)	: singularity run dsplant.sif
+	
+	building container : singularity build dsplant.sif dsplant.def 
+
+
+======================================================================================
 %post
     # ================================
     # PREPARE the system
